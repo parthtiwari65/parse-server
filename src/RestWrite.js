@@ -112,9 +112,7 @@ RestWrite.prototype.validateClientClassCreation = function() {
   let sysClass = ['_User', '_Installation', '_Role', '_Session', '_Product'];
   if (this.config.allowClientClassCreation === false && !this.auth.isMaster
       && sysClass.indexOf(this.className) === -1) {
-    return this.config.database.loadSchema().then((schema) => {
-      return schema.hasClass(this.className)
-    }).then((hasClass) => {
+    return this.config.database.collectionExists(this.className).then((hasClass) => {
       if (hasClass === true) {
         return Promise.resolve();
       }
@@ -130,7 +128,7 @@ RestWrite.prototype.validateClientClassCreation = function() {
 
 // Validates this operation against the schema.
 RestWrite.prototype.validateSchema = function() {
-  return this.config.database.validateObject(this.className, this.data, this.query);
+  return this.config.database.validateObject(this.className, this.data, this.query, this.runOptions);
 };
 
 // Runs any beforeSave triggers against this operation.

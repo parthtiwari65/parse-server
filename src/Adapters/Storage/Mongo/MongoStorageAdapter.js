@@ -1,18 +1,23 @@
 
 import MongoCollection from './MongoCollection';
+import MongoSchemaCollection from './MongoSchemaCollection';
 
 let mongodb = require('mongodb');
 let MongoClient = mongodb.MongoClient;
 
+const MongoSchemaCollectionName = '_SCHEMA';
+
 export class MongoStorageAdapter {
   // Private
   _uri: string;
+  _options: Object;
   // Public
   connectionPromise;
   database;
 
-  constructor(uri: string) {
+  constructor(uri: string, options: Object) {
     this._uri = uri;
+    this._options = options;
   }
 
   connect() {
@@ -20,7 +25,7 @@ export class MongoStorageAdapter {
       return this.connectionPromise;
     }
 
-    this.connectionPromise = MongoClient.connect(this._uri).then(database => {
+    this.connectionPromise = MongoClient.connect(this._uri, this._options).then(database => {
       this.database = database;
     });
     return this.connectionPromise;
@@ -36,6 +41,12 @@ export class MongoStorageAdapter {
     return this.connect()
       .then(() => this.database.collection(name))
       .then(rawCollection => new MongoCollection(rawCollection));
+  }
+
+  schemaCollection(collectionPrefix: string) {
+    return this.connect()
+      .then(() => this.adaptiveCollection(collectionPrefix + MongoSchemaCollectionName))
+      .then(collection => new MongoSchemaCollection(collection));
   }
 
   collectionExists(name: string) {
